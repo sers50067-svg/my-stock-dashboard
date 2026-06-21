@@ -1,10 +1,10 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
+import json
 from datetime import datetime
 
-# 1. 제미나이 API 연결 (여기에 복사하신 키를 넣을 겁니다)
-# 안전을 위해 실제 배포할 때는 다른 방식을 쓰지만, 우선 작동 테스트용으로 배치합니다.
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# 1. 오픈라우터 API 연결 (카드 등록이 필요 없는 100% 무료 AI)
+OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 # 웹사이트 타이틀 및 상단 디자인
 st.set_page_config(page_title="국장 반도체 시황 예측", page_icon="🌅", layout="wide")
@@ -20,7 +20,6 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
     with st.spinner("AI가 실시간 글로벌 증시와 반도체 뉴스를 분석 중입니다..."):
         try:
             # AI에게 던질 프롬프트(명령어)
-            model = genai.GenerativeModel('gemini-2.0-flash')
             prompt = """
             너는 대한민국 최고의 반도체 전문 투자 전략가야. 
             오늘 오전 국장(코스피) 시작 시 '삼성전자'와 'SK하이닉스'가 갭상승(상승 출발)할지, 갭하락(하락 출발)할지 예측하는 시황 리포트를 작성해 줘.
@@ -34,13 +33,29 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
             """
             
-            response = model.generate_content(prompt)
+            # 오픈라우터의 강력한 무료 모델(Llama 3.3 70B)에 요청 보냅니다.
+            response = requests.post(
+              url="https://openrouter.ai/api/v1/chat/completions",
+              headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+              },
+              data=json.dumps({
+                "model": "meta-llama/llama-3.3-70b-instruct:free", # 100% 무료 모델
+                "messages": [
+                  {"role": "user", "content": prompt}
+                ]
+              })
+            )
+            
+            # 결과 파싱
+            response_json = response.json()
+            result_text = response_json['choices'][0]['message']['content']
             
             # 결과 화면 출력
             st.success("📊 분석이 완료되었습니다!")
-            st.markdown(response.text)
+            st.markdown(result_text)
             
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}")
 else:
-    st.info("💡 위의 버튼을 누르면 제미나이가 실시간 데이터를 분석하여 리포트를 띄워줍니다.")
+    st.info("💡 위의 버튼을 누르면 AI가 실시간 데이터를 분석하여 리포트를 띄워줍니다.")
