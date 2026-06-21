@@ -3,8 +3,8 @@ import requests
 import json
 from datetime import datetime
 
-# 1. 오픈라우터 API 연결
-OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
+# 1. 안정성 100% 대기업 무료 API 연결
+GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # 웹사이트 타이틀 및 상단 디자인
 st.set_page_config(page_title="국장 반도체 시황 예측", page_icon="🌅", layout="wide")
@@ -33,57 +33,31 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
             """
             
-            # [업그레이드] 하나가 막히면 다음 모델로 자동 전환되는 무료 모델 후보 리스트
-            models_to_try = [
-                "meta-llama/llama-3.3-70b-instruct:free",
-                "meta-llama/llama-3.1-8b-instruct:free",
-                "meta-llama/llama-3.2-3b-instruct:free"
-            ]
+            # Groq 초고속 다이렉트 서버에 요청
+            response = requests.post(
+              url="https://api.groq.com/openai/v1/chat/completions",
+              headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+              },
+              json={  
+                "model": "llama-3.3-70b-versatile", # Groq의 메인 플래그십 무료 모델
+                "messages": [
+                  {"role": "user", "content": prompt}
+                ]
+              }
+            )
             
-            result_text = None
-            error_details = []
+            response_json = response.json()
             
-            # 후보 모델들을 순서대로 시도합니다.
-            for model in models_to_try:
-                try:
-                    response = requests.post(
-                      url="https://openrouter.ai/api/v1/chat/completions",
-                      headers={
-                        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-                      },
-                      json={  
-                        "model": model, 
-                        "messages": [
-                          {"role": "user", "content": prompt}
-                        ]
-                      }
-                    )
-                    
-                    response_json = response.json()
-                    
-                    # 오픈라우터 자체 에러 분기 처리
-                    if "error" in response_json:
-                        reason = response_json['error'].get('message', '알 수 없는 오류')
-                        error_details.append(f"[{model}] 차단 사유: {reason}")
-                        continue  # 에러가 나면 다음 모델로 넘어감
-                    else:
-                        result_text = response_json['choices'][0]['message']['content']
-                        break  # 성공하면 즉시 반복문을 탈출합니다!
-                        
-                except Exception as model_e:
-                    error_details.append(f"[{model}] 통신 실패: {model_e}")
-                    continue
-            
-            # 결과 출력부
-            if result_text:
+            if "error" in response_json:
+                st.error(f"Groq API 거절 사유: {response_json['error'].get('message', '알 수 없는 오류')}")
+            else:
+                result_text = response_json['choices'][0]['message']['content']
                 st.success("📊 분석이 완료되었습니다!")
                 st.markdown(result_text)
-            else:
-                st.error(" 모든 무료 AI 모델 서버가 현재 과부하 상태입니다. 잠시 후 다시 시도해 주세요.")
-                for err in error_details:
-                    st.caption(err)
             
         except Exception as e:
-            st.error(f"시스템 오류가 발생했습니다: {e}")
+            st.error(f"오류가 발생했습니다: {e}")
 else:
     st.info("💡 위의 버튼을 누르면 AI가 실시간 데이터를 분석하여 리포트를 띄워줍니다.")
