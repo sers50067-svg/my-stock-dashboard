@@ -33,14 +33,14 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
             """
             
-            # 데이터를 보낼 때 json= 옵션을 쓰면 데이터 형식이 누락되지 않고 안전하게 전송됩니다.
+            # 모델 명을 가장 에러가 없고 안정적인 제미나이 2.5 플래시 무료 버전으로 변경했습니다.
             response = requests.post(
               url="https://openrouter.ai/api/v1/chat/completions",
               headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
               },
               json={  
-                "model": "meta-llama/llama-3.3-70b-instruct:free",
+                "model": "google/gemini-2.5-flash:free", 
                 "messages": [
                   {"role": "user", "content": prompt}
                 ]
@@ -49,7 +49,6 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             
             response_json = response.json()
             
-            # [안전장치 추가] 만약 오픈라우터에서 에러를 반환했다면 에러 메시지를 직접 출력하도록 설정
             if "error" in response_json:
                 st.error(f"오픈라우터 API 거절 사유: {response_json['error'].get('message', '알 수 없는 오류')}")
             else:
