@@ -4,8 +4,7 @@ from datetime import datetime
 
 # 1. 제미나이 API 연결 (여기에 복사하신 키를 넣을 겁니다)
 # 안전을 위해 실제 배포할 때는 다른 방식을 쓰지만, 우선 작동 테스트용으로 배치합니다.
-GOOGLE_API_KEY = "AQ.Ab8RN6LV2ZUgNI85VDypadx31BG0j2UaP-L66vjh30PZtnxpJg"
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
 # 웹사이트 타이틀 및 상단 디자인
 st.set_page_config(page_title="국장 반도체 시황 예측", page_icon="🌅", layout="wide")
