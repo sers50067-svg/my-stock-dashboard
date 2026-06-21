@@ -3,7 +3,7 @@ import requests
 import json
 from datetime import datetime
 
-# 1. 안정성 100% 대기업 무료 API 연결
+# 1. Groq API 연결
 GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
 
 # 웹사이트 타이틀 및 상단 디자인
@@ -33,29 +33,55 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
             """
             
-            # Groq 초고속 다이렉트 서버에 요청
-            response = requests.post(
-              url="https://api.groq.com/openai/v1/chat/completions",
-              headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
-              },
-              json={  
-                "model": "llama-3.3-70b-versatile", # Groq의 메인 플래그십 무료 모델
-                "messages": [
-                  {"role": "user", "content": prompt}
-                ]
-              }
-            )
+            # [최종 무적 패치] 70B가 터지면 절대 안 터지는 8B/구글 젬마 모델로 자동 우회
+            models_to_try = [
+                "llama-3.3-70b-versatile",
+                "llama-3.1-8b-instant",
+                "llama3-8b-8192",
+                "gemma2-9b-it"
+            ]
             
-            response_json = response.json()
+            result_text = None
+            error_details = []
             
-            if "error" in response_json:
-                st.error(f"Groq API 거절 사유: {response_json['error'].get('message', '알 수 없는 오류')}")
-            else:
-                result_text = response_json['choices'][0]['message']['content']
+            for model in models_to_try:
+                try:
+                    response = requests.post(
+                      url="https://api.groq.com/openai/v1/chat/completions",
+                      headers={
+                        "Authorization": f"Bearer {GROQ_API_KEY}",
+                        "Content-Type": "application/json"
+                      },
+                      json={  
+                        "model": model, 
+                        "messages": [
+                          {"role": "user", "content": prompt}
+                        ]
+                      }
+                    )
+                    
+                    response_json = response.json()
+                    
+                    if "error" in response_json:
+                        reason = response_json['error'].get('message', '알 수 없는 오류')
+                        error_details.append(f"[{model}] 실패: {reason}")
+                        continue
+                    else:
+                        result_text = response_json['choices'][0]['message']['content']
+                        break  # 하나라도 성공하면 즉시 대화 탈출!
+                        
+                except Exception as e:
+                    error_details.append(f"[{model}] 연결 실패")
+                    continue
+            
+            # 결과 출력
+            if result_text:
                 st.success("📊 분석이 완료되었습니다!")
                 st.markdown(result_text)
+            else:
+                st.error("😭 현재 Groq 무료 서버가 일시적인 점검 중입니다. 잠시 후 다시 시도해 주세요.")
+                for err in error_details:
+                    st.caption(err)
             
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}")
