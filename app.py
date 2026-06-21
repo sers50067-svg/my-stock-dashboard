@@ -3,7 +3,7 @@ import requests
 import json
 from datetime import datetime
 
-# 1. 오픈라우터 API 연결 (카드 등록이 필요 없는 100% 무료 AI)
+# 1. 오픈라우터 API 연결
 OPENROUTER_API_KEY = st.secrets["OPENROUTER_API_KEY"]
 
 # 웹사이트 타이틀 및 상단 디자인
@@ -19,7 +19,7 @@ st.divider()
 if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary"):
     with st.spinner("AI가 실시간 글로벌 증시와 반도체 뉴스를 분석 중입니다..."):
         try:
-            # AI에게 던질 프롬프트(명령어)
+            # AI에게 던질 프롬프트
             prompt = """
             너는 대한민국 최고의 반도체 전문 투자 전략가야. 
             오늘 오전 국장(코스피) 시작 시 '삼성전자'와 'SK하이닉스'가 갭상승(상승 출발)할지, 갭하락(하락 출발)할지 예측하는 시황 리포트를 작성해 줘.
@@ -33,27 +33,29 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
             출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
             """
             
-            # 오픈라우터의 강력한 무료 모델(Llama 3.3 70B)에 요청 보냅니다.
+            # 데이터를 보낼 때 json= 옵션을 쓰면 데이터 형식이 누락되지 않고 안전하게 전송됩니다.
             response = requests.post(
               url="https://openrouter.ai/api/v1/chat/completions",
               headers={
                 "Authorization": f"Bearer {OPENROUTER_API_KEY}",
               },
-              data=json.dumps({
-                "model": "meta-llama/llama-3.3-70b-instruct:free", # 100% 무료 모델
+              json={  
+                "model": "meta-llama/llama-3.3-70b-instruct:free",
                 "messages": [
                   {"role": "user", "content": prompt}
                 ]
-              })
+              }
             )
             
-            # 결과 파싱
             response_json = response.json()
-            result_text = response_json['choices'][0]['message']['content']
             
-            # 결과 화면 출력
-            st.success("📊 분석이 완료되었습니다!")
-            st.markdown(result_text)
+            # [안전장치 추가] 만약 오픈라우터에서 에러를 반환했다면 에러 메시지를 직접 출력하도록 설정
+            if "error" in response_json:
+                st.error(f"오픈라우터 API 거절 사유: {response_json['error'].get('message', '알 수 없는 오류')}")
+            else:
+                result_text = response_json['choices'][0]['message']['content']
+                st.success("📊 분석이 완료되었습니다!")
+                st.markdown(result_text)
             
         except Exception as e:
             st.error(f"오류가 발생했습니다: {e}")
