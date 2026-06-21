@@ -21,7 +21,7 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
     with st.spinner("AI가 실시간 글로벌 증시와 반도체 뉴스를 분석 중입니다..."):
         try:
             # AI에게 던질 프롬프트(명령어)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-2.0-flash')
             prompt = """
             너는 대한민국 최고의 반도체 전문 투자 전략가야. 
             오늘 오전 국장(코스피) 시작 시 '삼성전자'와 'SK하이닉스'가 갭상승(상승 출발)할지, 갭하락(하락 출발)할지 예측하는 시황 리포트를 작성해 줘.
