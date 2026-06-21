@@ -3,7 +3,7 @@ import requests
 import json
 from datetime import datetime
 
-# 1. 페이지 설정 (테마 및 레이아웃을 금융 대시보드 스타일로 설정)
+# 1. 페이지 설정
 st.set_page_config(
     page_title="국장 반도체 시황 예측 대시보드", 
     page_icon="📈", 
@@ -11,9 +11,8 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. 사이드바 구성 (좌측 여백을 활용해 대시보드가 꽉 차 보이게 만듭니다)
+# 2. 사이드바 디자인
 with st.sidebar:
-    st.image("https://img.icons8.com/fluent/96/000000/bullish.png", width=60)
     st.title("PRO 인베스터 룸")
     st.markdown("---")
     
@@ -25,8 +24,8 @@ with st.sidebar:
     st.caption("---")
     st.caption("Powered by Groq High-Speed AI Server")
 
-# 3. 메인 화면 헤더 디자인 (폰트 크기와 이모지로 고급스럽게 구성)
-st.markdown("<h1 style='text-align: left; color: #F1F1F1;'>🌅 아침 증시 판세 분석 시스템</h1>", unsafe_style=True)
+# 3. 메인 화면 헤더 디자인 (오타 수정 완료)
+st.markdown("<h1 style='text-align: left; color: #F1F1F1;'>🌅 아침 증시 판세 분석 시스템</h1>", unsafe_allow_html=True)
 
 # 실시간 시간 표시 카드 스타일
 current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -37,22 +36,22 @@ st.markdown(
         <strong style='color: #F8FAFC; font-size: 16px;'>최종 동기화 시간: {current_time}</strong>
     </div>
     """, 
-    unsafe_style=True
+    unsafe_allow_html=True
 )
 
-# 4. 안전 패치 (유저님의 소중한 API 키 체크)
+# 4. API 키 체크
 has_key = True
 if "OPENROUTER_API_KEY" not in st.secrets:
     st.warning("⚠️ 스트림릿 금고(Secrets)에 'OPENROUTER_API_KEY'가 누락되었습니다.")
     has_key = False
 
-# 5. 분석 실행 버튼 영역 (버튼을 크게 강조하고 가이드 추가)
+# 5. 분석 실행 버튼 영역
 col1, col2 = st.columns([1, 4])
 with col1:
     generate_btn = st.button("🚀 AI 시황 리포트 생성", type="primary", use_container_width=True)
 
 with col2:
-    st.markdown("<p style='color: #94A3B8; margin-top: 8px;'>간밤의 미국 나스닥 및 필라델피아 반도체 지수를 분석하여 국장 시초가 방향성을 예측합니다.</p>", unsafe_style=True)
+    st.markdown("<p style='color: #94A3B8; margin-top: 8px;'>간밤의 미국 나스닥 및 필라델피아 반도체 지수를 분석하여 국장 시초가 방향성을 예측합니다.</p>", unsafe_allow_html=True)
 
 st.divider()
 
@@ -61,12 +60,10 @@ if generate_btn:
     if not has_key:
         st.error("❌ 금고에 API 키가 등록되지 않았습니다.")
     else:
-        # 애니메이션이 들어간 고급 스피너 효과
         with st.spinner("🔄 AI 전략가가 글로벌 증시 데이터 및 반도체 공급망 뉴스를 교차 분석하고 있습니다..."):
             try:
                 MY_API_KEY = st.secrets["OPENROUTER_API_KEY"]
                 
-                # AI 프롬프트 고도화 (AI가 마크다운을 더 이쁘게 출력하도록 가이드라인 추가)
                 prompt = """
                 너는 대한민국 여의도 최고 자산운용사의 수석 반도체 투자 전략가야. 
                 오늘 오전 코스피 시작 시 '삼성전자'와 'SK하이닉스'가 상승 출발(갭상승)할지, 하락 출발(갭하락)할지 예측하는 보고서를 격식 있고 가독성 높게 작성해 줘.
@@ -122,21 +119,13 @@ if generate_btn:
                         error_details.append(f"[{model}] 연결 실패")
                         continue
                 
-                # 최종 결과 리포트를 고급스러운 카드 박스 안에 렌더링
+                # 최종 결과 리포트 출력
                 if result_text:
                     st.balloons() # 성공 기념 축하 효과!
+                    st.success("📊 프리미엄 시황 분석 리포트가 완성되었습니다.")
                     
-                    st.markdown("<h3 style='color: #10B981;'>✅ 프리미엄 시황 분석 리포트</h3>", unsafe_style=True)
-                    
-                    # 리포트 전체를 감싸는 테두리 박스 스타일링
-                    st.markdown(
-                        f"""
-                        <div style='background-color: #0F172A; padding: 30px; border-radius: 12px; border: 1px solid #334155; line-height: 1.8;'>
-                            {st.markdown(result_text)}
-                        </div>
-                        """, 
-                        unsafe_style=True
-                    )
+                    # 깔끔하게 리포트 본문 출력
+                    st.markdown(result_text)
                 else:
                     st.error("😭 무료 AI 서버 과부하로 리포트를 가져오지 못했습니다. 잠시 후 버튼을 다시 눌러주세요.")
                     for err in error_details:
@@ -145,14 +134,13 @@ if generate_btn:
             except Exception as e:
                 st.error(f"시스템 내부 오류가 발생했습니다: {e}")
 else:
-    # 아직 버튼을 누르지 않았을 때 뜨는 대기 화면을 깔끔하게 디자인
+    # 대기 화면 일러스트 문구 (오타 수정 완료)
     st.markdown(
         """
         <div style='text-align: center; padding: 80px 0; color: #64748B;'>
-            <img src='https://img.icons8.com/gradient/100/000000/combo-chart.png' width='80'/><br><br>
-            <p style='font-size: 18px; font-weight: bold;'>생성 버튼을 누르면 오늘의 리포트가 이곳에 출력됩니다.</p>
+            <p style='font-size: 18px; font-weight: bold;'>📊 생성 버튼을 누르면 오늘의 리포트가 이곳에 출력됩니다.</p>
             <p style='font-size: 14px;'>글로벌 증시 마감 데이터를 바탕으로 정밀 분석을 시작합니다.</p>
         </div>
         """,
-        unsafe_style=True
+        unsafe_allow_html=True
     )
