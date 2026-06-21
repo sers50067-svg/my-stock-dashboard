@@ -3,51 +3,90 @@ import requests
 import json
 from datetime import datetime
 
-# 웹사이트 타이틀 및 상단 디자인
-st.set_page_config(page_title="국장 반도체 시황 예측", page_icon="🌅", layout="wide")
+# 1. 페이지 설정 (테마 및 레이아웃을 금융 대시보드 스타일로 설정)
+st.set_page_config(
+    page_title="국장 반도체 시황 예측 대시보드", 
+    page_icon="📈", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-st.title("🌅 아침 증시 판세 분석 대시보드")
-st.markdown(f"**최종 확인 시간:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-st.caption("간밤 미국 증시와 반도체 뉴스를 종합하여 삼성전자와 SK하이닉스의 시초가 흐름을 예측합니다.")
+# 2. 사이드바 구성 (좌측 여백을 활용해 대시보드가 꽉 차 보이게 만듭니다)
+with st.sidebar:
+    st.image("https://img.icons8.com/fluent/96/000000/bullish.png", width=60)
+    st.title("PRO 인베스터 룸")
+    st.markdown("---")
+    
+    st.subheader("🔍 모니터링 종목")
+    st.info("🔹 **삼성전자 (005930)**\n\n🔹 **SK하이닉스 (000660)**")
+    
+    st.markdown("---")
+    st.caption("💡 **오늘의 투자 격언**\n\n*\"시장의 소음(Noise)에 귀 닫고, 신호(Signal)에 집중하라.\"*")
+    st.caption("---")
+    st.caption("Powered by Groq High-Speed AI Server")
+
+# 3. 메인 화면 헤더 디자인 (폰트 크기와 이모지로 고급스럽게 구성)
+st.markdown("<h1 style='text-align: left; color: #F1F1F1;'>🌅 아침 증시 판세 분석 시스템</h1>", unsafe_style=True)
+
+# 실시간 시간 표시 카드 스타일
+current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+st.markdown(
+    f"""
+    <div style='background-color: #1E293B; padding: 12px 20px; border-radius: 10px; border-left: 5px solid #3B82F6; margin-bottom: 25px;'>
+        <span style='color: #94A3B8; font-size: 14px;'>🚨 최신 분석 시스템 가동 중</span><br>
+        <strong style='color: #F8FAFC; font-size: 16px;'>최종 동기화 시간: {current_time}</strong>
+    </div>
+    """, 
+    unsafe_style=True
+)
+
+# 4. 안전 패치 (유저님의 소중한 API 키 체크)
+has_key = True
+if "OPENROUTER_API_KEY" not in st.secrets:
+    st.warning("⚠️ 스트림릿 금고(Secrets)에 'OPENROUTER_API_KEY'가 누락되었습니다.")
+    has_key = False
+
+# 5. 분석 실행 버튼 영역 (버튼을 크게 강조하고 가이드 추가)
+col1, col2 = st.columns([1, 4])
+with col1:
+    generate_btn = st.button("🚀 AI 시황 리포트 생성", type="primary", use_container_width=True)
+
+with col2:
+    st.markdown("<p style='color: #94A3B8; margin-top: 8px;'>간밤의 미국 나스닥 및 필라델피아 반도체 지수를 분석하여 국장 시초가 방향성을 예측합니다.</p>", unsafe_style=True)
 
 st.divider()
 
-# [안전 패치] 유저님이 설정하신 'OPENROUTER_API_KEY' 이름표를 그대로 사용합니다.
-has_key = True
-if "OPENROUTER_API_KEY" not in st.secrets:
-    st.warning("⚠️ 스트림릿 금고(Secrets)를 확인해 주세요!")
-    has_key = False
-
-# 분석 실행 버튼
-if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary"):
+# 6. 로직 실행 및 대시보드 리포트 출력
+if generate_btn:
     if not has_key:
         st.error("❌ 금고에 API 키가 등록되지 않았습니다.")
     else:
-        with st.spinner("AI가 실시간 글로벌 증시와 반도체 뉴스를 분석 중입니다..."):
+        # 애니메이션이 들어간 고급 스피너 효과
+        with st.spinner("🔄 AI 전략가가 글로벌 증시 데이터 및 반도체 공급망 뉴스를 교차 분석하고 있습니다..."):
             try:
-                # 유저님의 금고 이름표 그대로 가져오기
                 MY_API_KEY = st.secrets["OPENROUTER_API_KEY"]
                 
-                # AI 프롬프트 설정
+                # AI 프롬프트 고도화 (AI가 마크다운을 더 이쁘게 출력하도록 가이드라인 추가)
                 prompt = """
-                너는 대한민국 최고의 반도체 전문 투자 전략가야. 
-                오늘 오전 국장(코스피) 시작 시 '삼성전자'와 'SK하이닉스'가 갭상승(상승 출발)할지, 갭하락(하락 출발)할지 예측하는 시황 리포트를 작성해 줘.
+                너는 대한민국 여의도 최고 자산운용사의 수석 반도체 투자 전략가야. 
+                오늘 오전 코스피 시작 시 '삼성전자'와 'SK하이닉스'가 상승 출발(갭상승)할지, 하락 출발(갭하락)할지 예측하는 보고서를 격식 있고 가독성 높게 작성해 줘.
 
-                [필수 포함 내용]
-                1. 뉴욕 증시 요약: 간밤 마감한 나스닥 지수 및 '필라델피아 반도체 지수' 등락률
-                2. 핵심 대형주 흐름: 엔비디아(Nvidia), AMD, 마이크론(Micron) 등 미국 주요 반도체 기업들의 주가 동향과 이슈
-                3. 주요 뉴스 분석: 반도체 업항, AI 산업 등 국장 반도체주에 영향을 줄 만한 글로벌 뉴스 요약
-                4. 결론 (오늘의 예측): 삼성전자와 SK하이닉스가 각각 오늘 아침 갭상승/갭하락 중 어느 쪽 무게가 실리는지 직관적으로 판단 및 이유 제시
+                [보고서 작성 규칙]
+                1. 각 대주제 앞에 어울리는 이모지를 붙여서 눈에 확 띄게 해줘.
+                2. '결론' 부분은 투자자가 출근길에 가장 먼저 확인할 수 있도록 명확하고 직관적인 단어(상승 유력 / 하락 유력 등)를 사용해 줘.
+                3. 숫자가 나오는 지수나 등락률은 가급적 표(Table)나 강조 텍스트(**굵게**)를 적극 활용해 줘.
 
-                출근길에 읽기 편하게 표와 이모지, 불릿포인트를 사용해서 깔끔하게 정리해 줘.
+                [필수 포함 구조]
+                - 📊 1. 뉴욕 마감 증시 동향 (나스닥, 필라델피아 반도체 지수 요약)
+                - 💻 2. 미국 주요 반도체 기술주 흐름 (엔비디아, AMD, 마이크론 등 핵심 이슈)
+                - 📰 3. 국장 직결 글로벌 핵심 뉴스 분석
+                - 🎯 4. 오늘의 국장 시초가 최종 예측 (삼성전자 & SK하이닉스 각각의 결론 및 근거)
                 """
                 
-                # 안정적인 Groq 무료 모델들을 순서대로 시도
                 models_to_try = [
                     "llama-3.3-70b-versatile",
                     "llama-3.1-8b-instant",
-                    "llama3-8b-8192",
-                    "gemma2-9b-it"
+                    "llama3-8b-8192"
                 ]
                 
                 result_text = None
@@ -72,7 +111,7 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
                         response_json = response.json()
                         
                         if "error" in response_json:
-                            reason = response_json['error'].get('message', '알 수 없는 오류')
+                            reason = response_json['error'].get('message', '서버 에러')
                             error_details.append(f"[{model}] 실패: {reason}")
                             continue
                         else:
@@ -83,16 +122,37 @@ if st.button("🚀 오늘 아침 시황 리포트 생성하기", type="primary")
                         error_details.append(f"[{model}] 연결 실패")
                         continue
                 
-                # 최종 결과 출력
+                # 최종 결과 리포트를 고급스러운 카드 박스 안에 렌더링
                 if result_text:
-                    st.success("📊 분석이 완료되었습니다!")
-                    st.markdown(result_text)
+                    st.balloons() # 성공 기념 축하 효과!
+                    
+                    st.markdown("<h3 style='color: #10B981;'>✅ 프리미엄 시황 분석 리포트</h3>", unsafe_style=True)
+                    
+                    # 리포트 전체를 감싸는 테두리 박스 스타일링
+                    st.markdown(
+                        f"""
+                        <div style='background-color: #0F172A; padding: 30px; border-radius: 12px; border: 1px solid #334155; line-height: 1.8;'>
+                            {st.markdown(result_text)}
+                        </div>
+                        """, 
+                        unsafe_style=True
+                    )
                 else:
-                    st.error("😭 현재 무료 AI 서버가 일시적인 과부하 상태입니다. 잠시 후 다시 시도해 주세요.")
+                    st.error("😭 무료 AI 서버 과부하로 리포트를 가져오지 못했습니다. 잠시 후 버튼을 다시 눌러주세요.")
                     for err in error_details:
                         st.caption(err)
                 
             except Exception as e:
                 st.error(f"시스템 내부 오류가 발생했습니다: {e}")
 else:
-    st.info("💡 위의 버튼을 누르면 AI가 실시간 데이터를 분석하여 리포트를 띄워줍니다.")
+    # 아직 버튼을 누르지 않았을 때 뜨는 대기 화면을 깔끔하게 디자인
+    st.markdown(
+        """
+        <div style='text-align: center; padding: 80px 0; color: #64748B;'>
+            <img src='https://img.icons8.com/gradient/100/000000/combo-chart.png' width='80'/><br><br>
+            <p style='font-size: 18px; font-weight: bold;'>생성 버튼을 누르면 오늘의 리포트가 이곳에 출력됩니다.</p>
+            <p style='font-size: 14px;'>글로벌 증시 마감 데이터를 바탕으로 정밀 분석을 시작합니다.</p>
+        </div>
+        """,
+        unsafe_style=True
+    )
