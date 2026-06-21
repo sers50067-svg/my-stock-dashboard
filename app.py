@@ -1,7 +1,7 @@
 import streamlit as st
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone # [수정] 시간대 변환 기능 추가
 
 # 1. 페이지 설정
 st.set_page_config(
@@ -24,16 +24,19 @@ with st.sidebar:
     st.caption("---")
     st.caption("Powered by Groq High-Speed AI Server")
 
-# 3. 메인 화면 헤더 디자인 (오타 수정 완료)
+# 3. 메인 화면 헤더 디자인
 st.markdown("<h1 style='text-align: left; color: #F1F1F1;'>🌅 아침 증시 판세 분석 시스템</h1>", unsafe_allow_html=True)
 
+# [시간 패치] 해외 서버 시간을 대한민국 서울 시간(UTC+9)으로 강제 고정합니다.
+KST = timezone(timedelta(hours=9))
+current_time = datetime.now(KST).strftime('%Y-%m-%d %H:%M:%S')
+
 # 실시간 시간 표시 카드 스타일
-current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 st.markdown(
     f"""
     <div style='background-color: #1E293B; padding: 12px 20px; border-radius: 10px; border-left: 5px solid #3B82F6; margin-bottom: 25px;'>
         <span style='color: #94A3B8; font-size: 14px;'>🚨 최신 분석 시스템 가동 중</span><br>
-        <strong style='color: #F8FAFC; font-size: 16px;'>최종 동기화 시간: {current_time}</strong>
+        <strong style='color: #F8FAFC; font-size: 16px;'>최종 동기화 시간 (서울 기준): {current_time}</strong>
     </div>
     """, 
     unsafe_allow_html=True
@@ -123,8 +126,6 @@ if generate_btn:
                 if result_text:
                     st.balloons() # 성공 기념 축하 효과!
                     st.success("📊 프리미엄 시황 분석 리포트가 완성되었습니다.")
-                    
-                    # 깔끔하게 리포트 본문 출력
                     st.markdown(result_text)
                 else:
                     st.error("😭 무료 AI 서버 과부하로 리포트를 가져오지 못했습니다. 잠시 후 버튼을 다시 눌러주세요.")
@@ -134,7 +135,6 @@ if generate_btn:
             except Exception as e:
                 st.error(f"시스템 내부 오류가 발생했습니다: {e}")
 else:
-    # 대기 화면 일러스트 문구 (오타 수정 완료)
     st.markdown(
         """
         <div style='text-align: center; padding: 80px 0; color: #64748B;'>
