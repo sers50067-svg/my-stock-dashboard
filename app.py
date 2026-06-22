@@ -2,7 +2,7 @@ import streamlit as st
 
 # 1. 페이지 설정 및 디자인 테마 동기화 (가장 먼저 실행되어야 합니다)
 st.set_page_config(
-    page_title="라오니 하이퍼리퀴드 연동 대시보드", 
+    page_title=" 대시보드", 
     page_icon="🟢", 
     layout="wide"
 )
